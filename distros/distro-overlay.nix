@@ -174,6 +174,12 @@ let
         echo "Fixing Eigen::Affine3d deprecation for ROS 2 tf2_eigen..."
         # Replace all instances of Affine3d with Isometry3d so tf2::fromMsg finds the correct specialization
         find . -type f \( -name "*.cpp" -o -name "*.hpp" \) -exec sed -i 's/Eigen::Affine3d/Eigen::Isometry3d/g' {} +
+
+        echo "Fixing tf2_eigen API usage in fake_gps.cpp..."
+        # Replace the invalid template calls with the correct transformToEigen API
+        substituteInPlace src/plugins/fake_gps.cpp \
+          --replace-quiet 'tf2::fromMsg(req->transform, tf_transform);' 'tf_transform = tf2::transformToEigen(req->transform);' \
+          --replace-quiet 'tf2::fromMsg(transform.transform, tf_transform);' 'tf_transform = tf2::transformToEigen(transform.transform);'
       '';
     });
 
