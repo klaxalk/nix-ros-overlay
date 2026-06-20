@@ -167,6 +167,16 @@ let
       '';
     });
 
+    mavros-extras = rosSuper.mavros-extras.overrideAttrs ({
+      postPatch ? "", ...
+    }: {
+      postPatch = postPatch + ''
+        echo "Fixing Eigen::Affine3d deprecation for ROS 2 tf2_eigen..."
+        # Replace all instances of Affine3d with Isometry3d so tf2::fromMsg finds the correct specialization
+        find . -type f \( -name "*.cpp" -o -name "*.hpp" \) -exec sed -i 's/Eigen::Affine3d/Eigen::Isometry3d/g' {} +
+      '';
+    });
+
     mrt-cmake-modules = rosSuper.mrt-cmake-modules.overrideAttrs ({
       postPatch ? "", ...
     }: {
