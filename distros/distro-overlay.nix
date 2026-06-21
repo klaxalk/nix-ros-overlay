@@ -167,6 +167,23 @@ let
       '';
     });
 
+    mavros-extras = rosSuper.mavros-extras.overrideAttrs ({
+      postPatch ? "", ...
+    }: {
+      # Migrate deprecated ASIO API calls for io_context, work guards, and resolvers
+      postPatch = postPatch + ''
+        substituteInPlace src/plugins/hil.cpp \
+          --replace-fail 'auto lin_vel = ftf::transform' 'Eigen::Vector3d lin_vel = ftf::transform' \
+          --replace-fail 'auto ang_vel = ftf::transform' 'Eigen::Vector3d ang_vel = ftf::transform'
+
+        substituteInPlace src/plugins/mount_control.cpp \
+          --replace-fail 'auto vec = Eigen::Vector3d' 'Eigen::Vector3d vec = Eigen::Vector3d' 
+
+        substituteInPlace src/plugins/landing_target.cpp \
+          --replace-fail 'Eigen::Vector2f angle;' 'Eigen::Vector2f angle = Eigen::Vector2f::Zero();' 
+      '';
+    });
+
     mrt-cmake-modules = rosSuper.mrt-cmake-modules.overrideAttrs ({
       postPatch ? "", ...
     }: {
